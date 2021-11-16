@@ -1,6 +1,0 @@
-/home/zoua1/gem_simulations/sim_newver/rotational_separate/build/CMakeFiles/qg3.dir
-/home/zoua1/gem_simulations/sim_newver/rotational_separate/build/CMakeFiles/edit_cache.dir
-/home/zoua1/gem_simulations/sim_newver/rotational_separate/build/CMakeFiles/qg4.dir
-/home/zoua1/gem_simulations/sim_newver/rotational_separate/build/CMakeFiles/qg1.dir
-/home/zoua1/gem_simulations/sim_newver/rotational_separate/build/CMakeFiles/rebuild_cache.dir
-/home/zoua1/gem_simulations/sim_newver/rotational_separate/build/CMakeFiles/qg2.dir
