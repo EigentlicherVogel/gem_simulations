@@ -1,0 +1,66 @@
+Bootstrap: docker
+From: ubuntu:18.04
+
+%post -c /bin/bash
+
+export DEBIAN_FRONTEND=noninteractive
+apt-get -y update
+apt-get -y upgrade
+apt-get -y install wget
+apt-get -y install cmake
+apt-get -y install build-essential binutils-gold libtool gfortran
+apt-get -y install libx11-dev libxft-dev libxext-dev libxpm-dev
+apt-get -y install freeglut3 freeglut3-dev g++ libglew-dev
+apt-get -y install libglew1.5-dev libglm-dev libssl-dev
+apt-get -y install libxi-dev libxmu-dev libftgl-dev automake
+apt-get -y install python-dev mesa-common-dev mesa-utils
+apt-get -y install libgsl-dev git
+
+apt-get -y install dpkg-dev g++ binutils libssl-dev
+apt-get -y install gfortran libpcre3-dev \
+                   xlibmesa-glu-dev libglew1.5-dev libftgl-dev \
+                   libmysqlclient-dev libfftw3-dev libcfitsio-dev \
+                   graphviz-dev libavahi-compat-libdnssd-dev \
+                   libldap2-dev python-dev libxml2-dev libkrb5-dev \
+                   libgsl0-dev libqt4-dev
+apt-get -y install vim
+
+mkdir /cernroot && cd /cernroot 
+mkdir /usr/local/root
+
+wget https://root.cern/download/root_v6.16.00.source.tar.gz --no-hsts
+tar xvzf root_v6.16.00.source.tar.gz
+cd root-6.16.00/build
+cmake -builtin_glew=ON -opengl=ON -tmva=OFF -DCMAKE_INSTALL_PREFIX=/usr/local/root ../
+#make clean
+#libtoolize
+#make -j4
+#make install
+cmake --build . --target install -- -j6
+
+# wget https://root.cern/download/root_v6.16.00.Linux-ubuntu18-x86_64-gcc7.3.tar.gz
+# tar -xvzf root_v6.16.00.Linux-ubuntu18-x86_64-gcc7.3.tar.gz
+
+. /usr/local/root/bin/thisroot.sh
+
+cd /
+git clone https://gitlab.cern.ch/garfield/garfieldpp.git
+cd garfieldpp
+mkdir build
+cd build
+export GARFIELD_HOME=/garfieldpp
+export HEED_DATABASE=$GARFIELD_HOME/Heed/heed++/database
+cmake -DCMAKE_BUILD_TYPE=Release -DROOTSYS=/usr/local/root/ $GARFIELD_HOME
+make
+make install
+
+
+export GARFIELD_HOME=/garfieldpp
+export GARFIELD_INSTALL=$GARFIELD_HOME/install
+export HEED_DATABASE=$GARFIELD_HOME/Heed/heed++/database
+export CMAKE_PREFIX_PATH=$GARFIELD_HOME/install:${CMAKE_PREFIX_PATH}
+
+source /usr/local/root/bin/thisroot.sh
+
+#export LD_LIBRARY_PATH=/garfieldpp/install/lib:/usr/lib:/lib:/usr/local/root/lib
+export LD_LIBRARY_PATH=/garfieldpp/install/lib:/usr/local/root/lib
