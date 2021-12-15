@@ -1,0 +1,367 @@
+FINISH
+/CLEAR,START
+/PREP7  
+! No polynomial elements
+/PMETH,OFF,1
+
+! Set electric preferences
+KEYW,PR_ELMAG,1
+KEYW,MAGELC,1   
+
+! Select element
+ET,1,SOLID123
+
+! Material properties
+MP,PERX,1,1e10  ! Metal
+MP,RSVX,1,0.0   !
+MP,PERX,2,3.5   ! Kapton
+MP,PERX,3,1.0	! Gas
+
+! Construct the GEM, middle gem center will be at z =0, 
+! top gem will be +ve z and bottom gem will be at -ve z
+pitch =  0.140   ! Distance between holes, in mm
+kapton = 0.050   ! Thickness of the kapton layer, in mm
+metal =  0.005   ! Thickness of the metal layers, in mm
+outdia = 0.070   ! Hole outer diameter, in mm
+middia = 0.050   ! Hole diameter in the centre, in mm
+rim =    0.070   ! Rim diameter, in mm
+tr_gap_coord = 3.0 ! Transfer gap total width
+tr_gap = 2.0 ! Gap between each layer
+ind_gap = 1.0 ! Induction gap width
+dr_gap = 3.0 ! Drift gap width
+drift =  1.5*tr_gap+ 2.*(kapton+ 2.*metal) + dr_gap ! drift electrode coordinate
+induct = -1.0*(1.5*tr_gap+ 2.*(kapton+ 2.*metal) + ind_gap ) ! Pad plane coordinate
+
+!voltages on electrodes , field = V/mm
+ed  = 100
+et1 = 200
+et2 = 200
+et3 = 200
+ei  = 200
+dvg = 255
+anode_v = 0.0
+!anode_half_v = ei*ind_gap+g4b
+g4b =  -1.0*ei*ind_gap
+g4t = g4b-dvg
+g3b =  -1.0*et3*tr_gap+g4t
+g3t = g3b-dvg
+g2b = -1.0*et2*tr_gap+g3t
+g2t = g2b-dvg
+g1b = -1.0*et1*tr_gap+g2t
+g1t = g1b-dvg
+cathode_v = -1.0*ed*dr_gap+g1t
+
+
+
+! +1.03, 1-3
+WPOFFS, 0,0,1.03
+BLOCK, 0, pitch/2, 0, pitch/2, -kapton/2, kapton/2
+BLOCK, 0, pitch/2, 0, pitch/2, -kapton/2, -kapton/2-metal
+BLOCK, 0, pitch/2, 0, pitch/2, kapton/2, kapton/2+metal
+
+! +2.06, 4-6
+WPOFFS, 0,0,2.06
+BLOCK, 0, pitch/2, 0, pitch/2, -kapton/2, kapton/2
+BLOCK, 0, pitch/2, 0, pitch/2, -kapton/2, -kapton/2-metal
+BLOCK, 0, pitch/2, 0, pitch/2, kapton/2, kapton/2+metal
+
+! -4.12, 7-9
+WPOFFS, 0,0,-4.12
+BLOCK, 0, pitch/2, 0, pitch/2, -kapton/2, kapton/2
+BLOCK, 0, pitch/2, 0, pitch/2, -kapton/2, -kapton/2-metal
+BLOCK, 0, pitch/2, 0, pitch/2, kapton/2, kapton/2+metal
+
+! -2.06, 10-12
+WPOFFS, 0,0,-2.06
+BLOCK, 0, pitch/2, 0, pitch/2, -kapton/2, kapton/2
+BLOCK, 0, pitch/2, 0, pitch/2, -kapton/2, -kapton/2-metal
+BLOCK, 0, pitch/2, 0, pitch/2, kapton/2, kapton/2+metal
+
+! Return to 0, make gas 13 
+WPOFFS, 0,0,3.09
+BLOCK, 0, pitch/2, 0, pitch/2, induct , drift
+ 
+
+
+WPOFFS, 0,0,1.03 !move to up 1, make cutout 1-1
+CONE, outdia/2, middia/2, -kapton/2,   0, 0, 360
+CONE, middia/2, outdia/2, 0, kapton/2, 0, 0, 360
+WPOFFS, 0, 0, kapton/2
+CYL4,   0, 0, rim/2, ,,, metal
+WPOFFS, 0, 0, -kapton
+CYL4,   0, 0, rim/2, ,,, -metal
+WPOFFS, 0, 0, kapton/2
+
+VADD, 14, 15, 16, 17 ! cutout 18
+
+! cutout 1-2
+WPOFFS, pitch/2, pitch/2, 0
+CONE, outdia/2, middia/2, -kapton/2,   0, 0, 360
+CONE, middia/2, outdia/2, 0, kapton/2, 0, 0, 360
+WPOFFS, 0, 0, kapton/2
+CYL4,   0, 0, rim/2, ,,, metal
+WPOFFS, 0, 0, -kapton
+CYL4,   0, 0, rim/2, ,,, -metal
+WPOFFS, 0, 0, kapton/2
+
+VADD, 14, 15, 16, 17   ! cutout 19
+
+! move to up 2, cutout 1-2
+WPOFFS, -pitch/2, -pitch/2, 0
+WPOFFS, 0,0,2.06
+CONE, outdia/2, middia/2, -kapton/2,   0, 0, 360
+CONE, middia/2, outdia/2, 0, kapton/2, 0, 0, 360
+WPOFFS, 0, 0, kapton/2
+CYL4,   0, 0, rim/2, ,,, metal
+WPOFFS, 0, 0, -kapton
+CYL4,   0, 0, rim/2, ,,, -metal
+WPOFFS, 0, 0, kapton/2
+
+VADD, 14, 15, 16, 17 ! cutout 20
+
+WPOFFS, pitch/2, pitch/2, 0
+CONE, outdia/2, middia/2, -kapton/2,   0, 0, 360
+CONE, middia/2, outdia/2, 0, kapton/2, 0, 0, 360
+WPOFFS, 0, 0, kapton/2
+CYL4,   0, 0, rim/2, ,,, metal
+WPOFFS, 0, 0, -kapton
+CYL4,   0, 0, rim/2, ,,, -metal
+WPOFFS, 0, 0, kapton/2
+
+VADD, 14, 15, 16, 17 ! cutout 21
+
+! move to down 1
+WPOFFS, -pitch/2, -pitch/2, 0
+WPOFFS, 0,0,-4.12
+CONE, outdia/2, middia/2, -kapton/2,   0, 0, 360
+CONE, middia/2, outdia/2, 0, kapton/2, 0, 0, 360
+WPOFFS, 0, 0, kapton/2
+CYL4,   0, 0, rim/2, ,,, metal
+WPOFFS, 0, 0, -kapton
+CYL4,   0, 0, rim/2, ,,, -metal
+WPOFFS, 0, 0, kapton/2
+
+VADD, 14, 15, 16, 17 ! cutout 22
+
+WPOFFS, pitch/2, pitch/2, 0
+CONE, outdia/2, middia/2, -kapton/2,   0, 0, 360
+CONE, middia/2, outdia/2, 0, kapton/2, 0, 0, 360
+WPOFFS, 0, 0, kapton/2
+CYL4,   0, 0, rim/2, ,,, metal
+WPOFFS, 0, 0, -kapton
+CYL4,   0, 0, rim/2, ,,, -metal
+WPOFFS, 0, 0, kapton/2
+
+VADD, 14, 15, 16, 17 ! cutout 23
+
+
+! move to down 2
+WPOFFS, -pitch/2, -pitch/2, 0
+WPOFFS, 0,0,-2.06
+CONE, outdia/2, middia/2, -kapton/2,   0, 0, 360
+CONE, middia/2, outdia/2, 0, kapton/2, 0, 0, 360
+WPOFFS, 0, 0, kapton/2
+CYL4,   0, 0, rim/2, ,,, metal
+WPOFFS, 0, 0, -kapton
+CYL4,   0, 0, rim/2, ,,, -metal
+WPOFFS, 0, 0, kapton/2
+
+VADD, 14, 15, 16, 17 ! cutout 24
+
+WPOFFS, pitch/2, pitch/2, 0
+CONE, outdia/2, middia/2, -kapton/2,   0, 0, 360
+CONE, middia/2, outdia/2, 0, kapton/2, 0, 0, 360
+WPOFFS, 0, 0, kapton/2
+CYL4,   0, 0, rim/2, ,,, metal
+WPOFFS, 0, 0, -kapton
+CYL4,   0, 0, rim/2, ,,, -metal
+WPOFFS, 0, 0, kapton/2
+
+VADD, 14, 15, 16, 17 ! cutout 25
+
+! working vol is 14
+
+! subtract up 1 
+VSBV,  1,  18, , , KEEP   
+VSBV,  14, 19, , , KEEP   
+VSBV,  2,  18, , , KEEP   
+VSBV,  14, 19, , , KEEP   
+VSBV,  3,  18, , , KEEP   
+VSBV,  14, 19, , , KEEP   
+
+! subtract up 2
+VSBV,  4,  20, , , KEEP   
+VSBV,  14, 21, , , KEEP   
+VSBV,  5,  20, , , KEEP   
+VSBV,  14, 21, , , KEEP   
+VSBV,  6,  20, , , KEEP   
+VSBV,  14, 21, , , KEEP   
+
+! subtract down 1
+VSBV,  7,  22, , , KEEP   
+VSBV,  14, 23, , , KEEP   
+VSBV,  8,  22, , , KEEP   
+VSBV,  14, 23, , , KEEP   
+VSBV,  9,  22, , , KEEP   
+VSBV,  14, 23, , , KEEP  
+
+! subtract up 2
+VSBV,  10,  24, , , KEEP   
+VSBV,  14, 25, , , KEEP   
+VSBV,  11,  24, , , KEEP   
+VSBV,  14, 25, , , KEEP   
+VSBV,  12,  24, , , KEEP   
+VSBV,  14, 25, , , KEEP  
+
+
+! Delete the 8 holes
+VDEL, 18
+VDEL, 19
+VDEL, 20
+VDEL, 21
+VDEL, 22
+VDEL, 23
+VDEL, 24
+VDEL, 25
+
+! working vol is 14, gas is 13
+VSBV,  13, 1, , , KEEP   
+VSBV,  14, 2, , , KEEP   
+VSBV,  13, 3, , , KEEP   
+VSBV,  14, 4, , , KEEP   
+VSBV,  13, 5, , , KEEP   
+VSBV,  14, 6, , , KEEP   
+VSBV,  13, 7, , , KEEP   
+VSBV,  14, 8, , , KEEP   
+VSBV,  13, 9, , , KEEP   
+VSBV,  14, 10, , , KEEP   
+VSBV,  13, 11, , , KEEP   
+VSBV,  14, 12, , , KEEP  
+! gas returns to 13 
+
+
+! Glue everything together
+VGLUE, ALL
+
+
+! kaps: 1, 4, 7, 10 - u1, u2, d1, d2 - 2, 1, 3, 4
+! metals: 14-21 - 1415 u1 - 1617 u2 - 2, 1, 3, 4 - sequence b-t-b-t
+! gas: 13
+
+! Assign material attributes
+VSEL, S,,, 1
+VATT, 2, ,1
+VSEL, S,,, 4
+VATT, 2, ,1
+VSEL, S,,, 7
+VATT, 2, ,1
+VSEL, S,,, 10
+VATT, 2, ,1
+
+VSEL, S,,, 13
+VATT, 3, ,1
+
+VSEL, S,,, 14
+VATT, 1, ,1
+VSEL, S,,, 15
+VATT, 1, ,1
+VSEL, S,,, 16
+VATT, 1, ,1
+VSEL, S,,, 17
+VATT, 1, ,1
+VSEL, S,,, 18
+VATT, 1, ,1
+VSEL, S,,, 19
+VATT, 1, ,1
+VSEL, S,,, 20
+VATT, 1, ,1
+VSEL, S,,, 21
+VATT, 1, ,1
+
+
+
+! Voltage boundaries on the drift and induction plane
+ASEL, S, LOC, Z, drift
+DA, ALL, VOLT, cathode_v
+ASEL, S, LOC, Z, induct
+DA, ALL, VOLT, anode_v
+
+
+! Voltage boundary conditions on the metal
+VSEL, S,,, 17
+ASLV, S
+DA, ALL, VOLT, g1t	! TG1
+VSEL, S,,, 16
+ASLV, S
+DA, ALL, VOLT, g1b	! BG1
+
+
+
+VSEL, S,,, 15
+ASLV, S
+DA, ALL, VOLT, g2t	! TG2
+VSEL, S,,, 14
+ASLV, S
+DA, ALL, VOLT, g2b	! BG2
+
+
+VSEL, S,,, 19
+ASLV, S
+DA, ALL, VOLT, g3t	! TG3
+VSEL, S,,, 18
+ASLV, S
+DA, ALL, VOLT, g3b	! BG3
+
+
+VSEL, S,,, 21
+ASLV, S
+DA, ALL, VOLT, g4t	! TG4
+VSEL, S,,, 20
+ASLV, S
+DA, ALL, VOLT, g4b	! BG4
+
+
+! Meshing options
+VSEL, S,,, 1,21
+ASLV, S
+
+MSHKEY,0
+SMRT, 1
+VSEL,S,,,1,11
+VSEL,A,,,13
+VMESH,ALL
+! VMESH,1,7
+
+! Solve the field
+/SOLU
+SOLVE   
+FINISH  
+
+! Display the solution
+/POST1  
+/EFACET,1   
+PLNSOL, VOLT,, 0
+/show,x11c,,,8
+/contour,,200,auto
+
+! Write the solution to files
+/OUTPUT, PRNSOL_4gemf_255dv, lis
+PRNSOL
+/OUTPUT
+
+/OUTPUT, NLIST_4gemf_255dv, lis
+NLIST,,,,COORD
+/OUTPUT
+
+/OUTPUT, ELIST_4gemf_255dv, lis
+ELIST
+/OUTPUT
+
+/OUTPUT, MPLIST_4gemf_255dv, lis
+MPLIST
+/OUTPUT
+
+
+
+FINISH
+

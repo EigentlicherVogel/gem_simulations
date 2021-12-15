@@ -1,0 +1,248 @@
+FINISH  
+/CLEAR,START
+/PREP7  
+! No polynomial elements
+/PMETH,OFF,1
+
+! Set electric preferences
+KEYW,PR_ELMAG,1
+KEYW,MAGELC,1   
+
+! Select element
+ET,1,SOLID123
+
+
+
+! Material properties
+MP,PERX,1,1e10  ! Metal
+MP,RSVX,1,0.0   !
+MP,PERX,2,1.0   ! Gas
+MP,PERX,3,4.0   ! Permittivity of FR4
+
+
+metal = 0.005
+kapton = 0.050
+pitch = 0.200
+xstrip = 0.150
+vstrip = 0.050
+
+fieldstart = 0.5 !Z-coord of upper limit
+gap = fieldstart - 2*(metal + kapton)
+m2gap = fieldstart - (metal + kapton)
+
+
+
+
+ei = 300 ! V/mm
+v_an = 0 ! V
+v_gap = 150 ! V
+v_md = v_gap*(1-(gap/fieldstart))
+v_mu = v_gap*(1-(m2gap/fieldstart))
+
+pi = acos(-1) !There's no pi in ansys
+
+xvangle = pi/2 !ARB. VALUE
+xvangle_deg = 90
+xcross = vstrip/cos(xvangle)
+zcross = vstrip/sin(xvangle)
+
+*IF,xvangle,EQ,pi/2,THEN
+xshift = pitch/2-zcross/2
+*ELSE
+xshift = pitch/tan(xvangle)
+*ENDIF
+
+
+
+BLOCK, -pitch, pitch, -pitch, pitch, 0, kapton ! kapton base, each at 2* pitch
+
+WPOFFS, pitch/2, 0, kapton ! move up and to side
+BLOCK,  -xstrip/2, xstrip/2, -pitch, pitch, 0, metal ! x1
+WPOFFS, -pitch, 0, 0 ! move to side
+BLOCK, -xstrip/2, xstrip/2, -pitch, pitch, 0, metal ! x2
+WPOFFS, pitch/2, 0, metal ! move up, to xy origin
+
+WPOFFS, 0, pitch/2, 0 ! move up, to xy origin
+BLOCK, -pitch, pitch, -vstrip/2, vstrip/2, 0, kapton ! v1k
+WPOFFS, 0, -pitch, 0 ! move up, to xy origin
+BLOCK, -pitch, pitch, -vstrip/2, vstrip/2, 0, kapton ! v2k
+WPOFFS, 0, pitch/2, kapton ! move up, to xy origin
+
+WPOFFS, 0, pitch/2, 0 ! move up, to xy origin
+BLOCK, -pitch, pitch, -vstrip/2, vstrip/2, 0, metal ! v1
+WPOFFS, 0, -pitch, 0 ! move up, to xy origin
+BLOCK, -pitch, pitch, -vstrip/2, vstrip/2, 0, metal ! v2
+
+WPOFFS, 0, pitch/2, -(metal + 2*kapton) ! to origin
+BLOCK,  -pitch, pitch, -pitch, pitch, 0, fieldstart !gas
+
+VSBV,  8, 1, , , KEEP  
+VSBV,  9, 2, , , KEEP  
+VSBV,  8, 3, , , KEEP  
+VSBV,  9, 4, , , KEEP   
+VSBV,  8, 5, , , KEEP  
+VSBV,  9, 6, , , KEEP  
+VSBV,  8, 7, , , KEEP  
+
+! Glue everything together
+VGLUE, ALL
+!after glue: kapton11 , x1213, v810, vk1415, g16
+
+
+
+/COLOR, VOLU, RED, 8
+/COLOR, VOLU, RED, 10
+/COLOR, VOLU, ORANGE, 11
+/COLOR, VOLU, BLUE, 12
+/COLOR, VOLU, BLUE, 13
+/COLOR, VOLU, ORANGE, 14
+/COLOR, VOLU, ORANGE, 15
+
+! Assign material attributes
+VSEL, S,,, 11
+VATT, 3, ,1
+VSEL, S,,, 14
+VATT, 3, ,1
+VSEL, S,,, 15
+VATT, 3, ,1
+
+VSEL, S,,, 8
+VATT, 1, ,1
+VSEL, S,,, 10
+VATT, 1, ,1
+VSEL, S,,, 12
+VATT, 1, ,1
+VSEL, S,,, 13
+VATT, 1, ,1
+
+VSEL, S,,, 16
+VATT, 2, ,1
+
+
+ASEL, S, LOC, Z, kapton+metal ! 0V is applied at metal layer's surface
+DA, ALL, VOLT, v_an
+ASEL, S, LOC, Z, fieldstart
+DA, ALL, VOLT, v_an + v_gap
+
+! Symmetry boundary conditions on the sides
+VSEL, S,,,11
+ASLV, S
+ASEL, R, LOC, X, +pitch
+DA, ALL, SYMM
+VSEL, S,,,11
+ASLV, S
+ASEL, R, LOC, X, -pitch
+DA, ALL, SYMM
+VSEL, S,,,11
+ASLV, S
+ASEL, R, LOC, Y, +pitch
+DA, ALL, SYMM
+VSEL, S,,,11
+ASLV, S
+ASEL, R, LOC, Y, -pitch
+DA, ALL, SYMM
+
+
+VSEL, S,,,14
+ASLV, S
+ASEL, R, LOC, X, +pitch
+DA, ALL, SYMM
+VSEL, S,,,14
+ASLV, S
+ASEL, R, LOC, X, -pitch
+DA, ALL, SYMM
+VSEL, S,,,14
+ASLV, S
+ASEL, R, LOC, Y, +pitch
+DA, ALL, SYMM
+VSEL, S,,,14
+ASLV, S
+ASEL, R, LOC, Y, -pitch
+DA, ALL, SYMM
+
+VSEL, S,,,15
+ASLV, S
+ASEL, R, LOC, X, +pitch
+DA, ALL, SYMM
+VSEL, S,,,15
+ASLV, S
+ASEL, R, LOC, X, -pitch
+DA, ALL, SYMM
+VSEL, S,,,15
+ASLV, S
+ASEL, R, LOC, Y, +pitch
+DA, ALL, SYMM
+VSEL, S,,,15
+ASLV, S
+ASEL, R, LOC, Y, -pitch
+DA, ALL, SYMM
+
+VSEL, S,,,16
+ASLV, S
+ASEL, R, LOC, X, +pitch
+DA, ALL, SYMM
+VSEL, S,,,16
+ASLV, S
+ASEL, R, LOC, X, -pitch
+DA, ALL, SYMM
+VSEL, S,,,16
+ASLV, S
+ASEL, R, LOC, Y, +pitch
+DA, ALL, SYMM
+VSEL, S,,,16
+ASLV, S
+ASEL, R, LOC, Y, -pitch
+DA, ALL, SYMM
+
+! Voltage boundary conditions on the metals (unsure)
+VSEL, S,,, 8 !
+ASLV, S
+DA, ALL, VOLT, v_an
+VSEL, S,,, 10 ! 
+ASLV, S
+DA, ALL, VOLT, v_an
+VSEL, S,,, 12 !
+ASLV, S
+DA, ALL, VOLT, v_an
+VSEL, S,,, 13 ! 
+ASLV, S
+DA, ALL, VOLT, v_an
+
+! Meshing options
+VSEL, S,,, 1, 16
+ASLV, S
+MSHKEY,0
+SMRT, 4
+
+!VSEL,S,,,11
+!VSEL,A,,,14
+!VSEL,A,,,15
+!VSEL,A,,,16
+VMESH,ALL
+
+! Solve the field
+/SOLU
+SOLVE   
+FINISH  
+
+! Display the solution
+/POST1  
+/EFACET,1   
+PLNSOL, VOLT, , 0
+
+! Write the solution to files
+/OUTPUT, PRNSOL_rdo_xy_90deg_revv, lis
+PRNSOL
+/OUTPUT
+
+/OUTPUT, NLIST_rdo_xy_90deg_revv, lis
+NLIST,,,,COORD
+/OUTPUT
+
+/OUTPUT, ELIST_rdo_xy_90deg_revv, lis
+ELIST
+/OUTPUT
+
+/OUTPUT, MPLIST_rdo_xy_90deg_revv, lis
+MPLIST
+/OUTPUT
