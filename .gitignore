@@ -1,1 +1,3 @@
 quadgem_singularity/rotational_separate/build/
+*.lis
+*.o
