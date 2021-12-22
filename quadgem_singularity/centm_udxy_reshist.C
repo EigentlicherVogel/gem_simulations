@@ -3,8 +3,13 @@ void centm_udxy_reshist()
 
 
   gROOT->SetBatch(kTRUE);
+  
+  //storage of final results
   TH1* finalhist_u = new TH1S("tur", "truth u - recon u", 160, -0.01, 0.01);
   TH1* finalhist_l = new TH1S("tlr", "truth l - recon l", 160, -0.1, 0.1);
+    
+  Double_t truth_cent;
+  Double_t recon_cent;
   
 
   Float_t kapton = 0.0050; // Thickness of the kapton layer, in cm
@@ -16,60 +21,59 @@ void centm_udxy_reshist()
   Float_t dstrip = 0.0150;
   Float_t ustrip = 0.0050;
 
-  Float_t z_init = ((kapton + metal) * 1) + kapton + 0.0001;
+  //Cut for upper strips
+  Float_t z_init = ((kapton + metal) * 1) + kapton + 0.0001; 
   Float_t z_fin = z_init + metal;
-  char cuttingU[100];
+  char cuttingU[100]; //Convert to string
   sprintf(cuttingU, "rez2 > %f && rez2 < %f", z_init, z_fin);
 
+  //Cut for lower strips
   Float_t z_init1 = kapton + 0.0001;
   Float_t z_fin1 = z_init1 + metal;
-  char cuttingL[100];
+  char cuttingL[100]; //Convert to string
   sprintf(cuttingL, "rez2 > %f && rez2 < %f", z_init1, z_fin1);
-  //puts(cutting);
 
   cout << "histogram cut string u: " << cuttingU << endl;
   cout << "histogram cut string l: " << cuttingL << endl;
+  
+  //Convert strings to TCut
   TCut hist_cutU("metal layer upper", cuttingU);
   TCut hist_cutL("metal layer lower", cuttingL);
 
-
+  //Configuration
   bool iter_dir_x = false;
   bool iter_dir_45 = true;
-  int file_ct = 6;
+  int file_ct = 6;        
+  bool u_gauss = true;
+  bool l_gauss = true;
 
+
+   //Chain for obtaining the initial cloud position and size
    TChain* tch_fln = new TChain("retree","chain of e- trees");
-//   tch_fln->Add("xyrdo_73ArCo2_350dv_5pi-_300mev_xy50i30u_xbfield15_1.root");
-    //tch_fln->Add("xyrdo_73ArCo2_350dv_60i30ux_4iterot_propstag_1.root");
-    // tch_fln->Add("xyrdo_73ArCo2_350dv_1pi-_5mev_x50i50u_xbfield15_1.root");
-    
-  //tch_fln->Add(" xyrdo_73ArCo2_350dv_80i30ux_4iterot_bf15_1.root");
-    
-     
-//   tch_fln->Add("xyrdo_73ArCo2_350dv_x100i3u_xbfield15_1.root");
+
    tch_fln->Add("xyrdo_73ArCo2_350dv_xy150i3u_xbfield15_1.root");
     
     //tch_fln->Add("xyrdo_xite_quadgem350_6mmtotal_20um_c1.root");
-    
+    //tch_fln->Add("xyrdo_73ArCo2_350dv_5pi-_300mev_xy50i30u_xbfield15_1.root");
+    //tch_fln->Add("xyrdo_73ArCo2_350dv_60i30ux_4iterot_propstag_1.root");
+    // tch_fln->Add("xyrdo_73ArCo2_350dv_1pi-_5mev_x50i50u_xbfield15_1.root");
+    //tch_fln->Add(" xyrdo_73ArCo2_350dv_80i30ux_4iterot_bf15_1.root");
+    //tch_fln->Add("xyrdo_73ArCo2_350dv_x100i3u_xbfield15_1.root");
     // tch_fln->Add("xyrdo_xite_quadgem350_xat0_30um250c_c1.root");
-  //tch_fln->Add("xyrdo_73ArCo2_350dv_60i30u_4iterot_4.root");
+    //tch_fln->Add("xyrdo_73ArCo2_350dv_60i30u_4iterot_4.root");
   
   
-    // int max_iter = tch_fln->GetEntries() - 2;
+    //int max_iter = tch_fln->GetEntries() - 2;
     //int max_iter = 10;
 
+    //Draw cloud to histograms of electron x and y single-axis histograms, and find them
     tch_fln->Draw("rex0>>initer_elecs0", hist_cutL, "", 1, 0);
     tch_fln->Draw("rey0>>initer_elecs1", hist_cutU, "", 1, 0);
-    
     TH1F *htemp0 = (TH1F*)gDirectory->FindObject("initer_elecs0");
     TH1F *htemp1 = (TH1F*)gDirectory->FindObject("initer_elecs1");
 
-    
-    // double offsetLmax = htempx->GetXaxis()->GetBinCenter(htempx->GetMaximumBin());
-    // double offsetLmin = htempx->GetXaxis()->GetBinCenter(htempx->GetMinimumBin());
-    
-    // double offsetUmax = htempy->GetXaxis()->GetBinCenter(htempy->GetMaximumBin());
-    // double offsetUmin = htempy->GetXaxis()->GetBinCenter(htempy->GetMinimumBin());
-    
+
+    //Obtain the maximum and minimum on the axes, calculate range
     double offsetLmax = htemp0->GetXaxis()->GetXmax();
     double offsetLmin = htemp0->GetXaxis()->GetXmin();
     
@@ -81,18 +85,17 @@ void centm_udxy_reshist()
 
     cout << "lower strips init will be from " << offsetLmin << " - " << offsetLmax << endl; 
     cout << "upper strips init will be from " << offsetUmin << " - " << offsetUmax << endl; 
+    
     delete htemp0;
     delete htemp1;
 
     
     
-
+    //Make the storage file
   TFile *store_file = new TFile("iterative_e-stgb_fit_aggr.root","RECREATE");
+  
 
-
-
-  Double_t truth_cent;
-  Double_t recon_cent;
+  //Loop 1: File
   for(int fl = 1;fl <= file_ct;fl++){
   
     char filename_iter[50];
@@ -112,14 +115,18 @@ void centm_udxy_reshist()
     fin->cd();
 
     TTree *out_etree = (TTree*)fin->Get("retree");
-    int max_iter = out_etree->GetEntries() - 1;
     //TTree etree;
     //etree=(TTree*)fin->Get("etree");
     //out_etree->Print();
+    
+    //Get number of iterations
+    int max_iter = out_etree->GetEntries() - 1;
     // Double_t iteration_distance = 0.005;
     // Double_t iteration_distance = 0.003;
     Double_t iteration_distance = 0.0212;
 
+
+    //Declaration of misc result histograms
     TGraph* recons_strx = new TGraph(max_iter);
     TGraph* recons_stry = new TGraph(max_iter);
     TH2* cutelecsl = new TH2D("cutelecsL", "L strips alle", binct, offsetLmin, offsetLmax + max_iter*iteration_distance, binct, offsetUmin, offsetUmax + max_iter*iteration_distance);
@@ -129,13 +136,13 @@ void centm_udxy_reshist()
     TH2* cutelecsa = new TH2D("cutelecsA", "singular cloud", binct, offsetLmin, offsetLmax, binct, offsetUmin, offsetUmax);
     TH2* cutelecsta = new TH2D("cutelecsS", "singular cloud strips", binct, offsetLmin, offsetLmax, binct, offsetUmin, offsetUmax);
 
-
-    //Double_t iteration_distance = 0.003;
-    
+    //Loop 2: Iteration
     for(int cur_iter = 1;cur_iter <= max_iter;cur_iter++){
         int treeiter;
         Int_t iterationx;
         Int_t iterationy;
+        
+        //Iteration direction from configurations earlier
         if(iter_dir_45){
             
           iterationx = cur_iter;
@@ -157,32 +164,20 @@ void centm_udxy_reshist()
 
 
         //middle of electron cloud = zero point
-        // Double_t e_centerX_r = iteration_distance * iterationx;
-        // Double_t e_centerU_r = iteration_distance * iterationy;
-        // Double_t l_it_min = -0.12 + iteration_distance * iterationx;
-        // Double_t l_it_max = 0.12 + iteration_distance * iterationx;
-        // Double_t u_it_min = -0.12 + iteration_distance * iterationy;
-        // Double_t u_it_max = 0.12 + iteration_distance * iterationy;
-
+        //Calculate the electron cloud's upper and lower limits for the current iteration
         Double_t l_it_min = offsetLmin - 0.1 + iteration_distance * iterationx;
         Double_t l_it_max = offsetLmax + 0.1 + iteration_distance * iterationx;
         Double_t u_it_min = offsetUmin - 0.1 + iteration_distance * iterationy;
         Double_t u_it_max = offsetUmax + 0.1 + iteration_distance * iterationy;
         
-        //auto rexcanva = new TCanvas("rex", "rex");
-        //rexcanva->cd();
-        
-        bool u_gauss = true;
-        bool l_gauss = true;
-        
-
-       	
+	
         Double_t e_centerL;
-        
+        //Draw electrons on RO board layer to histogram
         TH1 *h_allL = new TH1D("all_elecsL", "electrons L", binct, l_it_min, l_it_max);
         out_etree->Draw("rex2>>all_elecsL", hist_cutL, "", 1, treeiter);
+        //If electron cloud is gaussian
         if(l_gauss){
-
+            //Create gaussian fit, get center of the fit
             TF1 *fit_hL = new TF1("fit_h_l","gaus",l_it_min,l_it_max);
             fit_hL->SetName("fit_h_l");
             h_allL->Fit("fit_h_l","R");
@@ -190,30 +185,25 @@ void centm_udxy_reshist()
             delete fit_hL;
             
         }else{
+            //Else just find histogram mean as cloud center
            	e_centerL = h_allL->GetMean();
-         
         }
+        cout << "Iter: " << cur_iter << " - Fit Center L " << e_centerL << endl;
+        cout <<  l_it_min << " Lower strip Range " << l_it_max << endl;  
+
         
-            cout << "Iter: " << cur_iter << " - Fit Center L " << e_centerL << endl;
-            cout <<  l_it_min << " Lower strip Range " << l_it_max << endl;  
-
-
+        //Same process for Y
         Double_t e_centerU;
         TH1 *h_allU = new TH1D("all_elecsU", "electrons U", binct, u_it_min, u_it_max);
         out_etree->Draw("rey2>>all_elecsU", hist_cutU, "", 1, treeiter);
         if(u_gauss){
-            
            	//Double_t e_centerU = h_allU->GetMean();
             TF1 *fit_hU = new TF1("fit_h_u","gaus",u_it_min,u_it_max);
             fit_hU->SetName("fit_h_u");
             h_allU->Fit("fit_h_u","R");
-
-            
            	e_centerU = fit_hU->GetParameter(1);
            	delete fit_hU;
-           	
         }else{
-            
            	e_centerU = h_allU->GetMean();
         }
 
@@ -221,12 +211,8 @@ void centm_udxy_reshist()
        	    cout << "Iter: " << cur_iter << " - Fit Center U " << e_centerU << endl;
             cout <<  u_it_min << " Upper strip Range " << u_it_max << endl;
        	
-
-        //auto reycanva = new TCanvas("rey", "rey");
-        //reycanva->cd();
         
-        
-                
+        //If empty histograms are detected, alert, throw away result and continue
         if(h_allU->Integral() == 0.0){
        	    cout << "empty histograms detected on upper strips" << endl;
        	}
@@ -239,51 +225,58 @@ void centm_udxy_reshist()
        	    continue;
        	}
         
-        
-        
-        
-        
 
-        
-        
-        //cout << "read histograms" << endl;
-        
+        //Use calculated lower bound of the cloud to find which multiplier of (strip+pitch) should the iteration start at
         Double_t xpitch_mult = floor(abs((l_it_min + (pitch / 2 - dstrip / 2)) / pitch)); 
+        //Calculate the initial offset from the multiplier
         Double_t initial_offset_x = pitch / 2 - dstrip / 2 - pitch * xpitch_mult;
-   
         cout << "lower starts at " << xpitch_mult << " units wide and at " << initial_offset_x  << endl;
-        Double_t xs_iter = initial_offset_x;
-        Double_t xs_iter_con = 0.0;
         
+        
+        //Iterations loop starts at the initial offset
+        Double_t xs_iter = initial_offset_x;
+        //Blank double for the contents of one strip
+        Double_t xs_iter_con = 0.0;
+        //Declare lists
         std::list<Double_t> contentlistL;
         std::list<Double_t> coordlistL;
+        
+        //Loop 3(d): Strips
         while (xs_iter < e_centerL || xs_iter_con > 0.0)
         {
+          //Make cut for "between two strips" using current iterator
           Double_t xs_iter_up = xs_iter + dstrip + 0.001;
           char cuttingStL[100];
           sprintf(cuttingStL, "rex2 > %f && rex2 < %f", xs_iter, xs_iter_up);
           //cout << cuttingStL << endl;
-
           TCut hist_cut_itL("L iterative cutter", cuttingStL);
 
+            
+          //Combine the between-strip cut and the layer-only cut to get the current strip's 1D electron distribution
           TH1 *x_temphist = new TH1S("xtemphist", "iterator histogram", 50, xs_iter, xs_iter_up);
           out_etree->Draw("rex2>>xtemphist", hist_cutL && hist_cut_itL, "colz", 1, treeiter);
 
-
+          //Obtain content of strip
           xs_iter_con = x_temphist->Integral();
+          //Obtain center of strip
           Double_t stripmean = xs_iter + (dstrip / 2);
 
           cout << "l strip at: " << stripmean << endl;
           cout << "l strip content: " << xs_iter_con << endl;
           cout << "l cut used: " << cuttingStL << " && " << hist_cutL << endl;
+          
+          //Put the content and center into the respective lists ONLY if there is significant amount of electrons
           if (xs_iter_con > 10.0)
           {
             contentlistL.push_back(xs_iter_con);
             coordlistL.push_back(stripmean);
           }
+          
+          //Advance the iterator by pitch
           xs_iter += pitch;
           delete x_temphist;
         }
+        //Loop 3(d) Ends
 
         Double_t ypitch_mult = floor(abs((u_it_min + (pitch / 2 - ustrip / 2)) / pitch)); 
         Double_t initial_offset_y = pitch / 2 - ustrip / 2 - pitch * ypitch_mult;
@@ -293,6 +286,7 @@ void centm_udxy_reshist()
         Double_t ys_iter_con = 0.0;
         std::list<Double_t> contentlistU;
         std::list<Double_t> coordlistU;
+        //Loop 3(u) starts
         while (ys_iter < e_centerU || ys_iter_con > 0.0)
         {
           Double_t ys_iter_up = ys_iter + ustrip + 0.001;
@@ -319,12 +313,16 @@ void centm_udxy_reshist()
           ys_iter += pitch;
           delete y_temphist;
         }
+        //Loop 3(u) ends
+        
+        //Iterate through the filled content/coordinate lists again
         std::list<Double_t>::iterator ictx = contentlistL.begin();
         std::list<Double_t>::iterator icox = coordlistL.begin();
-
+        //Storage for sum of electrons and sum of (e*coordinates)
         Double_t xsum = 0.0;
         Double_t x_t_coord = 0.0;
 
+        //Loop 4: centroid
         while (ictx != contentlistL.end())
         {
           xsum += *ictx;
@@ -333,7 +331,10 @@ void centm_udxy_reshist()
           ictx++;
           icox++;
         }
+        //Loop 4 ends
         Double_t xcentroid = x_t_coord / xsum;
+
+
 
         std::list<Double_t>::iterator icty = contentlistU.begin();
         std::list<Double_t>::iterator icoy = coordlistU.begin();
@@ -351,15 +352,19 @@ void centm_udxy_reshist()
         }
         Double_t ycentroid = y_t_coord / ysum;
 
+
+        
         cout << "centroid lower det " << xcentroid << endl;
         cout << "centroid upper det " << ycentroid << endl;
         cout << "cloud center lower " << e_centerL << endl;
         cout << "cloud center upper " << e_centerU << endl;
         cout << xcentroid - e_centerL << " // " << ycentroid - e_centerU << endl;
 
+
+        //If both the cloud center and the centroid shows up to 0.0 (very small probability unless something goes wrong) then omit cloud from final histogram
         if(e_centerL == 0.0 || xcentroid == 0.0){
             cout << "l omission" << endl;
-
+        //Else put into histogram
         }else{
             recons_strx->SetPoint(cur_iter-1,e_centerL,xcentroid);
             Double_t xvx = xcentroid - e_centerL;  
@@ -384,6 +389,7 @@ void centm_udxy_reshist()
         //delete fit_hL;
         //delete fit_hU;
       }
+      //Loop 2 ends
 
 
       char graphxname[20];
@@ -448,6 +454,7 @@ void centm_udxy_reshist()
       delete recons_stry;
 
     }
+    //Loop 1 ends
   gROOT->SetBatch(kFALSE);
   //TCanvas* c10 = new TCanvas("c10");
   //c10->cd();
